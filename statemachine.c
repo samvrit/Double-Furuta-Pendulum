@@ -46,7 +46,7 @@ State statemachine()
         break;
     case balance:
         cond1 = (fabs(x[1]) > deg2rad(20));
-        cond2 = (fabs(x[1]) <= deg2rad(1)) && (fabs(x[2]) <= deg2rad(1)) && (fabs(x[3]) <= deg2rad(10));
+        cond2 = (fabs(x[1]) <= deg2rad(1)) && (fabs(x[2]) <= deg2rad(1)) && (fabs(x[3]) <= deg2rad(1));
         cond3 = fabs(x[1]) < deg2rad(20) && fabs(x[2]) > deg2rad(15);
         if(cond1)
             next_state = swing_up;
