@@ -7,7 +7,7 @@
 
 #define buflen 50
 #define DUTY_CYCLE_DEFAULT 0
-#define SCI_SELECT 2
+#define SCI_SELECT 3
 
 const int EPWM1_TIMER_TBPRD = 2000;
 const float MAX_TORQUE = 0.75;
@@ -19,6 +19,7 @@ double x[6] = {0.0};
 State state;
 int pwm_active = 1;
 int motor_active = 0;
+double torque;
 //
 // Function Prototypes
 //
@@ -212,7 +213,7 @@ void main(void)
 
    for(;;)
    {
-       if(SCI_SELECT == 1)
+       if(SCI_SELECT == 1)  // receives sensor data (X) from PC
        {
            while(SciaRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
            while(SciaRegs.SCIFFRX.bit.RXFFST > 0)
@@ -240,7 +241,7 @@ void main(void)
                else i++;
            }
        }
-       else
+       else if(SCI_SELECT == 2) //receives sensor data (X) from wireless receiver
        {
            while(ScibRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
            while(ScibRegs.SCIFFRX.bit.RXFFST > 0)
@@ -267,6 +268,27 @@ void main(void)
                }
                else i++;
            }
+       }
+       else if(SCI_SELECT == 3) //directly receives torque commands from PC
+       {
+           while(SciaRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
+           while(SciaRegs.SCIFFRX.bit.RXFFST > 0)
+           {
+               recv[i] = SciaRegs.SCIRXBUF.all;
+
+               if(recv[i] == '\n')
+               {
+                   torque = atof(recv);
+
+                   actuate(torque);
+
+                   for(j = 0; j <= buflen; j++)
+                       recv[j] = '\0';
+                   i = 0;
+               }
+               else i++;
+           }
+
        }
 
    }

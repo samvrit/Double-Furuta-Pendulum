@@ -25,6 +25,7 @@ double action(void);
 double deg2rad(double);
 double rad2deg(double);
 double sign(double);
+Uint16 actuate(float);
 
 
 #endif /* GLOBALS_H_ */
