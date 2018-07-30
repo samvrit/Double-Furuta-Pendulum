@@ -7,10 +7,11 @@ extern const float MAX_TORQUE;
 extern int pwm_active;
 extern Uint16 duty_cycle;
 extern int motor_dir;
+float torque_sat;
 
 Uint16 actuate(float torque)
 {
-    float torque_sat = torque;
+    torque_sat = torque;
 
     if(torque_sat > MAX_TORQUE)
         torque_sat = MAX_TORQUE;

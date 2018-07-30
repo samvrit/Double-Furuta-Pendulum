@@ -43,8 +43,8 @@ interrupt void xint3_isr(void);
 void main(void)
 {
     char recv[buflen];
-    char *token;
-    char delimiter[2] = ",";
+//    char *token;
+//    char delimiter[2] = ",";
 
 
 //
@@ -209,88 +209,27 @@ void main(void)
 
    int i = 0;
    int j = 0;
-   int k = 0;
+//   int k = 0;
 
-   for(;;)
+   while(1)
    {
-       if(SCI_SELECT == 1)  // receives sensor data (X) from PC
+       while(SciaRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
+       while(SciaRegs.SCIFFRX.bit.RXFFST > 0)
        {
-           while(SciaRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
-           while(SciaRegs.SCIFFRX.bit.RXFFST > 0)
+           recv[i] = SciaRegs.SCIRXBUF.all;
+
+           if(recv[i] == '\n')
            {
-               recv[i] = SciaRegs.SCIRXBUF.all;
+               torque = atof(recv);
 
-               if(recv[i] == '\n')
-               {
-                   scia_msg(recv);
-                   token = strtok(recv,delimiter);
-                   k = 0;
-                   while(token != NULL)
-                   {
-                       x[k] = atof(token);
-                       token = strtok(NULL,delimiter);
-                       k++;
-                   }
+               actuate(torque);
 
-                   action();
-
-                   for(j = 0; j <= buflen; j++)
-                       recv[j] = '\0';
-                   i = 0;
-               }
-               else i++;
+               for(j = 0; j <= buflen; j++)
+                   recv[j] = '\0';
+               i = 0;
            }
+           else i++;
        }
-       else if(SCI_SELECT == 2) //receives sensor data (X) from wireless receiver
-       {
-           while(ScibRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
-           while(ScibRegs.SCIFFRX.bit.RXFFST > 0)
-           {
-               recv[i] = ScibRegs.SCIRXBUF.all;
-
-               if(recv[i] == '\n')
-               {
-                   scia_msg(recv);
-                   token = strtok(recv,delimiter);
-                   k = 0;
-                   while(token != NULL)
-                   {
-                       x[k] = atof(token);
-                       token = strtok(NULL,delimiter);
-                       k++;
-                   }
-
-                   action();
-
-                   for(j = 0; j <= buflen; j++)
-                       recv[j] = '\0';
-                   i = 0;
-               }
-               else i++;
-           }
-       }
-       else if(SCI_SELECT == 3) //directly receives torque commands from PC
-       {
-           while(SciaRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
-           while(SciaRegs.SCIFFRX.bit.RXFFST > 0)
-           {
-               recv[i] = SciaRegs.SCIRXBUF.all;
-
-               if(recv[i] == '\n')
-               {
-                   torque = atof(recv);
-
-                   actuate(torque);
-
-                   for(j = 0; j <= buflen; j++)
-                       recv[j] = '\0';
-                   i = 0;
-               }
-               else i++;
-           }
-
-       }
-
    }
 }
 
@@ -353,9 +292,7 @@ void scia_echoback_init()
     // @LSPCLK = 30 MHz (120 MHz SYSCLK) HBAUD = 0x01 and LBAUD = 0x86.
     //  Baud rate = LSPCLK/((BRR+1)*8)
     SciaRegs.SCIHBAUD.all = 0x0000;
-    //SciaRegs.SCILBAUD.all = 0x0002;   //2000000
-
-    ScibRegs.SCILBAUD.all = 0x0002;     //115200
+    SciaRegs.SCILBAUD.all = 0x0002;
 
     SciaRegs.SCICTL1.all = 0x0023;  // Relinquish SCI from Reset
 }
