@@ -7,7 +7,6 @@
 
 #define buflen 50
 #define DUTY_CYCLE_DEFAULT 0
-#define SCI_SELECT 3
 
 const int EPWM1_TIMER_TBPRD = 2000;
 const float MAX_TORQUE = 0.75;
@@ -24,27 +23,20 @@ double torque;
 // Function Prototypes
 //
 void InitEPwm1(void);
-void InitEPwm11(void);
+//void InitEPwm11(void);
 void scia_echoback_init(void);
 void scia_fifo_init(void);
 void scia_xmit(int a);
 void scia_msg(char *msg);
-void scib_echoback_init(void);
-void scib_fifo_init(void);
-void scib_xmit(int a);
-void scib_msg(char *msg);
 
 interrupt void xint1_isr(void);
 interrupt void xint2_isr(void);
-interrupt void xint3_isr(void);
 //
 // Main
 //
 void main(void)
 {
     char recv[buflen];
-//    char *token;
-//    char delimiter[2] = ",";
 
 
 //
@@ -63,30 +55,17 @@ void main(void)
 //
    InitGpio();
 
-//
-// For this example, only init the pins for the SCI-A port.
-//  GPIO_SetupPinMux() - Sets the GPxMUX1/2 and GPyMUX1/2 register bits
-//  GPIO_SetupPinOptions() - Sets the direction and configuration of the GPIOS
-// These functions are found in the F2837xD_Gpio.c file.
 
-   GPIO_SetupPinMux(2, GPIO_MUX_CPU1, 0);   // motor enable pin
+   GPIO_SetupPinMux(2, GPIO_MUX_CPU1, 0);   // motor enable pin (Pin 38)
    GPIO_SetupPinOptions(2, GPIO_OUTPUT, GPIO_PUSHPULL);
 
-   GPIO_SetupPinMux(3, GPIO_MUX_CPU1, 0);   // motor direction pin
+   GPIO_SetupPinMux(3, GPIO_MUX_CPU1, 0);   // motor direction pin (Pin 37)
    GPIO_SetupPinOptions(3, GPIO_OUTPUT, GPIO_PUSHPULL);
-
-   GPIO_SetupPinMux(4, GPIO_MUX_CPU1, 0);   // pwm enable pin
-   GPIO_SetupPinOptions(4, GPIO_OUTPUT, GPIO_PUSHPULL);
 
    GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15); // scia pins
    GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
    GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
    GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
-
-   GPIO_SetupPinMux(19, GPIO_MUX_CPU1, 2);  // scib pins
-   GPIO_SetupPinOptions(19, GPIO_INPUT, GPIO_PUSHPULL);
-   GPIO_SetupPinMux(18, GPIO_MUX_CPU1, 2);
-   GPIO_SetupPinOptions(18, GPIO_OUTPUT, GPIO_ASYNC);
 
    GPIO_SetupPinMux(31, GPIO_MUX_CPU1, 0);  // led pin
    GPIO_SetupPinOptions(31, GPIO_OUTPUT, GPIO_PUSHPULL);
@@ -96,25 +75,28 @@ void main(void)
 
    GPIO_WritePin(31, 1);    // turn off led for motor enable indication
    GPIO_WritePin(34, 0);    // turn on led for pwm_active indication
-   GPIO_WritePin(2, 0);     // disable motor
+   GPIO_WritePin(2, 0);     // disable motor by default, as a safety measure
 
-   EALLOW;
-   GpioCtrlRegs.GPAPUD.bit.GPIO20 = 1;
-   GpioCtrlRegs.GPAPUD.bit.GPIO21 = 1;
-
-   GpioCtrlRegs.GPAMUX2.bit.GPIO20 = 5; //PWM11A
-   GpioCtrlRegs.GPAMUX2.bit.GPIO21 = 0; //GPIO
-
-   GpioCtrlRegs.GPADIR.bit.GPIO20 = GPIO_OUTPUT;
-   GpioCtrlRegs.GPADIR.bit.GPIO21 = GPIO_OUTPUT;
-   EDIS;
-
-   GPIO_WritePin(21,0);
+// Following code can be used if the in-built level shifter is put to use
+//   EALLOW;
+//   GpioCtrlRegs.GPAPUD.bit.GPIO20 = 1;
+//   GpioCtrlRegs.GPAPUD.bit.GPIO21 = 1;
+//
+//   GpioCtrlRegs.GPAMUX2.bit.GPIO20 = 5; //PWM11A
+//   GpioCtrlRegs.GPAMUX2.bit.GPIO21 = 0; //GPIO
+//
+//   GpioCtrlRegs.GPADIR.bit.GPIO20 = GPIO_OUTPUT;
+//   GpioCtrlRegs.GPADIR.bit.GPIO21 = GPIO_OUTPUT;
+//   EDIS;
+//
+//   GPIO_WritePin(21,0);
+//   CpuSysRegs.PCLKCR2.bit.EPWM11=1;
+//   InitEpwm11Gpio();
 
    CpuSysRegs.PCLKCR2.bit.EPWM1=1;
    InitEPwm1Gpio();
 
-   CpuSysRegs.PCLKCR2.bit.EPWM11=1;
+
 
 //
 // Step 3. Clear all __interrupts and initialize PIE vector table:
@@ -147,16 +129,16 @@ void main(void)
    InitPieVectTable();
 
    InitEPwm1();
-   InitEPwm11();
+//   InitEPwm11();  // uncomment if inbuilt level shifter is being used
 
    EALLOW;
    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
    EDIS;
 
+   // Map the external interrupt functions to the PIE Vector table
    EALLOW;  // This is needed to write to EALLOW protected registers
-   PieVectTable.XINT1_INT = &xint1_isr;
-   PieVectTable.XINT2_INT = &xint2_isr;
-   PieVectTable.XINT3_INT = &xint3_isr;
+   PieVectTable.XINT1_INT = &xint1_isr; // toggle motor enable
+   PieVectTable.XINT2_INT = &xint2_isr; // toggle pwm enable
    EDIS;
 
    PieCtrlRegs.PIECTRL.bit.ENPIE = 1;          // Enable the PIE block
@@ -165,6 +147,7 @@ void main(void)
    IER |= M_INT1;                              // Enable CPU INT1
    EINT;                                       // Enable Global Interrupts
 
+   // Following lines configure the pins attached to the interrupts
    EALLOW;
    GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 0;         // GPIO
    GpioCtrlRegs.GPADIR.bit.GPIO1 = 0;          // input
@@ -176,40 +159,27 @@ void main(void)
    GpioCtrlRegs.GPAPUD.bit.GPIO4 = 0;
    GpioCtrlRegs.GPAQSEL1.bit.GPIO4 = 2;
 
-   GpioCtrlRegs.GPAMUX1.bit.GPIO5 = 0;         // GPIO
-   GpioCtrlRegs.GPADIR.bit.GPIO5 = 0;          // input
-   GpioCtrlRegs.GPAPUD.bit.GPIO5 = 0;
-   GpioCtrlRegs.GPAQSEL1.bit.GPIO5 = 2;
-
    GpioCtrlRegs.GPACTRL.bit.QUALPRD0 = 0xFF;
    EDIS;
 
-   GPIO_SetupXINT1Gpio(1);
-   GPIO_SetupXINT2Gpio(4);
-   GPIO_SetupXINT3Gpio(5);
+   GPIO_SetupXINT1Gpio(1);  // Specifies that interrupt 1 is attached to pin 1
+   GPIO_SetupXINT2Gpio(4);  // Specifies that interrupt 2 is attached to pin 4
 
    XintRegs.XINT1CR.bit.POLARITY = 0;
    XintRegs.XINT2CR.bit.POLARITY = 0;
-   XintRegs.XINT3CR.bit.POLARITY = 0;
 
    XintRegs.XINT1CR.bit.ENABLE = 1;
    XintRegs.XINT2CR.bit.ENABLE = 1;
-   XintRegs.XINT3CR.bit.ENABLE = 1;
 
-   //
-// Step 4. User specific code:
-//
    LoopCount = 0;
 
+   // Initialize the SCI communication
    scia_fifo_init();       // Initialize the SCI FIFO
    scia_echoback_init();   // Initialize SCI for echoback
-   scib_fifo_init();       // Initialize the SCI FIFO
-   scib_echoback_init();   // Initialize SCI for echoback
 
 
    int i = 0;
    int j = 0;
-//   int k = 0;
 
    while(1)
    {
@@ -256,16 +226,6 @@ interrupt void xint2_isr(void)
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
-interrupt void xint3_isr(void)
-{
-    state = startup;
-
-    //
-    // Acknowledge this interrupt to get more from group 1
-    //
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
-}
-
 //
 //  scia_echoback_init - Test 1,SCIA  DLB, 8-bit word, baud rate 0x000F,
 //                       default, 1 STOP bit, no parity
@@ -297,34 +257,7 @@ void scia_echoback_init()
     SciaRegs.SCICTL1.all = 0x0023;  // Relinquish SCI from Reset
 }
 
-void scib_echoback_init()
-{
-    //
-    // Note: Clocks were turned on to the SCIA peripheral
-    // in the InitSysCtrl() function
-    //
 
-    ScibRegs.SCICCR.all = 0x0007;   // 1 stop bit,  No loopback
-                                    // No parity,8 char bits,
-                                    // async mode, idle-line protocol
-    ScibRegs.SCICTL1.all = 0x0003;  // enable TX, RX, internal SCICLK,
-                                    // Disable RX ERR, SLEEP, TXWAKE
-    ScibRegs.SCICTL2.all = 0x0003;
-    ScibRegs.SCICTL2.bit.TXINTENA = 1;
-    ScibRegs.SCICTL2.bit.RXBKINTENA = 1;
-
-    //
-    // SCIA at 9600 baud
-    // @LSPCLK = 50 MHz (200 MHz SYSCLK) HBAUD = 0x02 and LBAUD = 0x8B.
-    // @LSPCLK = 30 MHz (120 MHz SYSCLK) HBAUD = 0x01 and LBAUD = 0x86.
-    //  Baud rate = LSPCLK/((BRR+1)*8)
-    ScibRegs.SCIHBAUD.all = 0x0000;
-    //ScibRegs.SCILBAUD.all = 0x0002;   //2000000
-
-    ScibRegs.SCILBAUD.all = 0x0035; //115200
-
-    ScibRegs.SCICTL1.all = 0x0023;  // Relinquish SCI from Reset
-}
 
 //
 // scia_xmit - Transmit a character from the SCI
@@ -335,11 +268,6 @@ void scia_xmit(int a)
     SciaRegs.SCITXBUF.all =a;
 }
 
-void scib_xmit(int a)
-{
-    while (ScibRegs.SCIFFTX.bit.TXFFST != 0) {}
-    ScibRegs.SCITXBUF.all =a;
-}
 
 //
 // scia_msg - Transmit message via SCIA
@@ -355,17 +283,6 @@ void scia_msg(char * msg)
     }
 }
 
-void scib_msg(char * msg)
-{
-    int i;
-    i = 0;
-    while(msg[i] != '\0')
-    {
-        scib_xmit(msg[i]);
-        i++;
-    }
-}
-
 //
 // scia_fifo_init - Initialize the SCI FIFO
 //
@@ -374,13 +291,6 @@ void scia_fifo_init()
     SciaRegs.SCIFFTX.all = 0xE040;
     SciaRegs.SCIFFRX.all = 0x2044;
     SciaRegs.SCIFFCT.all = 0x0;
-}
-
-void scib_fifo_init()
-{
-    ScibRegs.SCIFFTX.all = 0xE040;
-    ScibRegs.SCIFFRX.all = 0x2044;
-    ScibRegs.SCIFFCT.all = 0x0;
 }
 
 
