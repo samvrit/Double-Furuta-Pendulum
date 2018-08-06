@@ -22,11 +22,13 @@ Uint16 actuate(float torque)
     {
         motor_dir = 0;
         GPIO_WritePin(3, 1);
+        GPIO_WritePin(99, 1);
     }
     else
     {
         motor_dir = 1;
         GPIO_WritePin(3, 0);
+        GPIO_WritePin(99, 0);
     }
 
     duty_cycle = lround((fabs(torque_sat)/MAX_TORQUE)*EPWM1_TIMER_TBPRD);
@@ -37,9 +39,15 @@ Uint16 actuate(float torque)
         duty_cycle *= 0.95;
 
     if(pwm_active)
+    {
         EPwm1Regs.CMPA.bit.CMPA = duty_cycle;
+        EPwm11Regs.CMPA.bit.CMPA = duty_cycle;
+    }
     else
+    {
         EPwm1Regs.CMPA.bit.CMPA = 0;
+        EPwm11Regs.CMPA.bit.CMPA = 0;
+    }
 
     return duty_cycle;
 }

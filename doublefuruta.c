@@ -24,6 +24,7 @@ double torque;
 //
 void InitEPwm1(void);
 //void InitEPwm11(void);
+
 void scia_echoback_init(void);
 void scia_fifo_init(void);
 void scia_xmit(int a);
@@ -59,8 +60,14 @@ void main(void)
    GPIO_SetupPinMux(2, GPIO_MUX_CPU1, 0);   // motor enable pin (Pin 38)
    GPIO_SetupPinOptions(2, GPIO_OUTPUT, GPIO_PUSHPULL);
 
+//   GPIO_SetupPinMux(21, GPIO_MUX_CPU1, 0);   // alt. motor enable pin (EQEPA pin 2)
+//   GPIO_SetupPinOptions(21, GPIO_OUTPUT, GPIO_PUSHPULL);
+
    GPIO_SetupPinMux(3, GPIO_MUX_CPU1, 0);   // motor direction pin (Pin 37)
    GPIO_SetupPinOptions(3, GPIO_OUTPUT, GPIO_PUSHPULL);
+
+//   GPIO_SetupPinMux(99, GPIO_MUX_CPU1, 0);   // alt. motor direction pin (EQEPA pin 3)
+//   GPIO_SetupPinOptions(99, GPIO_OUTPUT, GPIO_PUSHPULL);
 
    GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15); // scia pins
    GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
@@ -77,21 +84,16 @@ void main(void)
    GPIO_WritePin(34, 0);    // turn on led for pwm_active indication
    GPIO_WritePin(2, 0);     // disable motor by default, as a safety measure
 
-// Following code can be used if the in-built level shifter is put to use
+   // Following code is used to configure the EPWM11 GPIO
+   // Reference: F28379D Technical Reference Manual, GPIO & Peripheral Muxing, p. 914
 //   EALLOW;
 //   GpioCtrlRegs.GPAPUD.bit.GPIO20 = 1;
-//   GpioCtrlRegs.GPAPUD.bit.GPIO21 = 1;
-//
-//   GpioCtrlRegs.GPAMUX2.bit.GPIO20 = 5; //PWM11A
-//   GpioCtrlRegs.GPAMUX2.bit.GPIO21 = 0; //GPIO
-//
-//   GpioCtrlRegs.GPADIR.bit.GPIO20 = GPIO_OUTPUT;
-//   GpioCtrlRegs.GPADIR.bit.GPIO21 = GPIO_OUTPUT;
+//   GpioCtrlRegs.GPAGMUX2.bit.GPIO20 = 1;
+//   GpioCtrlRegs.GPAMUX2.bit.GPIO20 = 1; //EPWM11A
+//   //GpioCtrlRegs.GPADIR.bit.GPIO20 = GPIO_OUTPUT;
 //   EDIS;
-//
-//   GPIO_WritePin(21,0);
+
 //   CpuSysRegs.PCLKCR2.bit.EPWM11=1;
-//   InitEpwm11Gpio();
 
    CpuSysRegs.PCLKCR2.bit.EPWM1=1;
    InitEPwm1Gpio();
@@ -203,11 +205,16 @@ void main(void)
    }
 }
 
-interrupt void xint1_isr(void)
+interrupt void xint1_isr(void)  // The function that is called when there is an interrupt 1
 {
     GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;  // toggle led state
     GpioDataRegs.GPATOGGLE.bit.GPIO2 = 1;   // toggle motor enable pin
+    //GpioDataRegs.GPATOGGLE.bit.GPIO21 = 1;   // toggle alt. motor enable pin
     motor_active = !motor_active;
+    if(motor_active)    // send motor_active status through serial
+        scia_msg("1\n");
+    else
+        scia_msg("0\n");
 
     //
     // Acknowledge this interrupt to get more from group 1
@@ -215,7 +222,7 @@ interrupt void xint1_isr(void)
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
-interrupt void xint2_isr(void)
+interrupt void xint2_isr(void)  // The function that is called when there is an interrupt 2
 {
     GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;  // toggle led state
     pwm_active = !pwm_active;
