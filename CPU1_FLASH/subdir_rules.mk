@@ -82,6 +82,13 @@ action.obj: ../action.c $(GEN_OPTS) | $(GEN_HDRS)
 	@echo 'Finished building: "$<"'
 	@echo ' '
 
+actuate.obj: ../actuate.c $(GEN_OPTS) | $(GEN_HDRS)
+	@echo 'Building file: "$<"'
+	@echo 'Invoking: C2000 Compiler'
+	"S:/ti/ccsv8/tools/compiler/ti-cgt-c2000_18.1.1.LTS/bin/cl2000" -v28 -ml -mt --cla_support=cla1 --float_support=fpu32 --tmu_support=tmu0 --vcu_support=vcu2 -O4 --opt_for_speed=5 --fp_mode=relaxed --include_path="S:/ti/ccsv8/tools/compiler/ti-cgt-c2000_18.1.1.LTS/include" --include_path="S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/headers/include" --include_path="S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/common/include" --define=CPU1 --define=_LAUNCHXL_F28379D --define=_FLASH -g --diag_suppress=10063 --diag_warning=225 --display_error_number --preproc_with_compile --preproc_dependency="actuate.d_raw" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: "$<"'
+	@echo ' '
+
 doublefuruta.obj: ../doublefuruta.c $(GEN_OPTS) | $(GEN_HDRS)
 	@echo 'Building file: "$<"'
 	@echo 'Invoking: C2000 Compiler'

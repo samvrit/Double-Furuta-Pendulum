@@ -21,6 +21,7 @@ ORDERED_OBJS += \
 "./F2837xD_SysCtrl.obj" \
 "./F2837xD_usDelay.obj" \
 "./action.obj" \
+"./actuate.obj" \
 "./doublefuruta.obj" \
 "./statemachine.obj" \
 $(GEN_CMDS__FLAG) \
@@ -167,8 +168,8 @@ DoubleFuruta.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "F2837xD_CodeStartBranch.obj" "F2837xD_DefaultISR.obj" "F2837xD_EPwm.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_Ipc.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "action.obj" "doublefuruta.obj" "statemachine.obj" 
-	-$(RM) "F2837xD_DefaultISR.d" "F2837xD_EPwm.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_Ipc.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "action.d" "doublefuruta.d" "statemachine.d" 
+	-$(RM) "F2837xD_CodeStartBranch.obj" "F2837xD_DefaultISR.obj" "F2837xD_EPwm.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_Ipc.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "action.obj" "actuate.obj" "doublefuruta.obj" "statemachine.obj" 
+	-$(RM) "F2837xD_DefaultISR.d" "F2837xD_EPwm.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_Ipc.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "action.d" "actuate.d" "doublefuruta.d" "statemachine.d" 
 	-$(RM) "F2837xD_CodeStartBranch.d" "F2837xD_usDelay.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

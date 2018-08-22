@@ -183,20 +183,20 @@ void main(void)
    int i = 0;
    int j = 0;
 
-   while(1)
+   while(1) // enter the infinite loop
    {
        while(SciaRegs.SCIFFRX.bit.RXFFST == 0) { } // wait for empty state
-       while(SciaRegs.SCIFFRX.bit.RXFFST > 0)
+       while(SciaRegs.SCIFFRX.bit.RXFFST > 0)   // if more than 0 bytes are in the input buffer,
        {
-           recv[i] = SciaRegs.SCIRXBUF.all;
+           recv[i] = SciaRegs.SCIRXBUF.all; // read the bytes one by one, until...
 
-           if(recv[i] == '\n')
+           if(recv[i] == '\n')  // newline character is received
            {
-               torque = atof(recv);
+               torque = atof(recv); // convert the character array into float
 
-               actuate(torque);
+               actuate(torque); // call the actuate function
 
-               for(j = 0; j <= buflen; j++)
+               for(j = 0; j <= buflen; j++) // clear the input buffer
                    recv[j] = '\0';
                i = 0;
            }
@@ -210,7 +210,7 @@ interrupt void xint1_isr(void)  // The function that is called when there is an 
     GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;  // toggle led state
     GpioDataRegs.GPATOGGLE.bit.GPIO2 = 1;   // toggle motor enable pin
     //GpioDataRegs.GPATOGGLE.bit.GPIO21 = 1;   // toggle alt. motor enable pin
-    motor_active = !motor_active;
+    motor_active = !motor_active;   // negate the motor_active variable
     if(motor_active)    // send motor_active status through serial
         scia_msg("1\n");
     else
@@ -225,7 +225,7 @@ interrupt void xint1_isr(void)  // The function that is called when there is an 
 interrupt void xint2_isr(void)  // The function that is called when there is an interrupt 2
 {
     GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;  // toggle led state
-    pwm_active = !pwm_active;
+    pwm_active = !pwm_active;   // negate the pwm_active boolean
 
     //
     // Acknowledge this interrupt to get more from group 1

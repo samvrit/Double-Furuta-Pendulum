@@ -19,6 +19,7 @@ S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/common/source/F2837xD_Pi
 S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/common/source/F2837xD_PieVect.c \
 S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/common/source/F2837xD_SysCtrl.c \
 ../action.c \
+../actuate.c \
 ../doublefuruta.c \
 ../statemachine.c 
 
@@ -32,6 +33,7 @@ C_DEPS += \
 ./F2837xD_PieVect.d \
 ./F2837xD_SysCtrl.d \
 ./action.d \
+./actuate.d \
 ./doublefuruta.d \
 ./statemachine.d 
 
@@ -47,6 +49,7 @@ OBJS += \
 ./F2837xD_SysCtrl.obj \
 ./F2837xD_usDelay.obj \
 ./action.obj \
+./actuate.obj \
 ./doublefuruta.obj \
 ./statemachine.obj 
 
@@ -66,6 +69,7 @@ OBJS__QUOTED += \
 "F2837xD_SysCtrl.obj" \
 "F2837xD_usDelay.obj" \
 "action.obj" \
+"actuate.obj" \
 "doublefuruta.obj" \
 "statemachine.obj" 
 
@@ -79,6 +83,7 @@ C_DEPS__QUOTED += \
 "F2837xD_PieVect.d" \
 "F2837xD_SysCtrl.d" \
 "action.d" \
+"actuate.d" \
 "doublefuruta.d" \
 "statemachine.d" 
 
@@ -100,6 +105,7 @@ C_SRCS__QUOTED += \
 "S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/common/source/F2837xD_PieVect.c" \
 "S:/ti/c2000/C2000Ware_1_00_04_00/device_support/f2837xd/common/source/F2837xD_SysCtrl.c" \
 "../action.c" \
+"../actuate.c" \
 "../doublefuruta.c" \
 "../statemachine.c" 
 

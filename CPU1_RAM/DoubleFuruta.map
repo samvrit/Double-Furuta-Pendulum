@@ -1,7 +1,7 @@
 ******************************************************************************
              TMS320C2000 Linker PC v18.1.1                     
 ******************************************************************************
->> Linked Mon Aug  6 11:53:25 2018
+>> Linked Mon Aug 13 17:44:46 2018
 
 OUTPUT FILE NAME:   <DoubleFuruta.out>
 ENTRY POINT SYMBOL: "code_start"  address: 00000000
@@ -19,7 +19,7 @@ PAGE 0:
   RAMLS2                00009000   00000800  00000000  00000800  RWIX
   RAMLS3                00009800   00000800  00000000  00000800  RWIX
   RAMLS4                0000a000   00000800  00000000  00000800  RWIX
-  RAMD0                 0000b000   00000800  00000800  00000000  RWIX
+  RAMD0                 0000b000   00000800  000007fa  00000006  RWIX
   RESET                 003fffc0   00000002  00000000  00000002  RWIX
 
 PAGE 1:
@@ -617,11 +617,11 @@ CpuSysRegsFile
                   00008a5d    00000019                       : args_main.c.obj (.text)
                   00008a76    00000018                       : ll_aox28.asm.obj (.text)
 
-.text.4    0    0000b000    00000800     
+.text.4    0    0000b000    000007fa     
                   0000b000    00000585     F2837xD_DefaultISR.obj (.text:retain)
                   0000b585    000001fd     rts2800_fpu32.lib : strtod.c.obj (.text)
-                  0000b782    0000006d     doublefuruta.obj (.text:retain)
-                  0000b7ef    00000011     F2837xD_PieVect.obj (.text)
+                  0000b782    00000067     doublefuruta.obj (.text:retain)
+                  0000b7e9    00000011     F2837xD_PieVect.obj (.text)
 
 MODULE SUMMARY
 
@@ -631,7 +631,7 @@ MODULE SUMMARY
        F2837xD_GlobalVariableDefs.obj           0      0                  8695              
        F2837xD_DefaultISR.obj                   1413   0                  0                 
        F2837xD_SysCtrl.obj                      1250   0                  0                 
-       doublefuruta.obj                         509    24                 18                
+       doublefuruta.obj                         503    24                 18                
        F2837xD_Gpio.obj                         536    0                  0                 
        F2837xD_PieVect.obj                      17     448                0                 
        F2837xD_EPwm.obj                         319    0                  0                 
@@ -641,10 +641,10 @@ MODULE SUMMARY
        F2837xD_usDelay.obj                      4      0                  0                 
        F2837xD_CodeStartBranch.obj              2      0                  0                 
     +--+----------------------------------------+------+------------------+--------------------+
-       Total:                                   4222   472                8761              
+       Total:                                   4216   472                8761              
                                                                                             
     C:\Users\Samvrit\AppData\Local\Temp\
-       {5E1560F2-4B59-4DC3-8002-7BEFF0AF9EA1}   0      100                0                 
+       {8B4A073D-08E4-4C68-8CF3-6192880EE770}   0      100                0                 
     +--+----------------------------------------+------+------------------+--------------------+
        Total:                                   0      100                0                 
                                                                                             
@@ -672,7 +672,7 @@ MODULE SUMMARY
                                                                                             
        Stack:                                   0      0                  256               
     +--+----------------------------------------+------+------------------+--------------------+
-       Grand Total:                             5346   887                9095              
+       Grand Total:                             5340   887                9095              
 
 
 GLOBAL DATA SYMBOLS: SORTED BY DATA PAGE
@@ -1099,7 +1099,7 @@ abs   ffffffff  .text
 0     000001a8  _InitGpio                             
 0     00008254  _InitPeripheralClocks                 
 0     00008a19  _InitPieCtrl                          
-0     0000b7ef  _InitPieVectTable                     
+0     0000b7e9  _InitPieVectTable                     
 0     000082fd  _InitSysCtrl                          
 0     00008059  _InitSysPll                           
 1     00007900  _InputXbarRegs                        
@@ -1493,7 +1493,7 @@ page  address   name
 0     0000b585  _strtof                               
 0     0000b782  _xint2_isr                            
 0     0000b7a1  _xint1_isr                            
-0     0000b7ef  _InitPieVectTable                     
+0     0000b7e9  _InitPieVectTable                     
 1     00000400  __stack                               
 1     00000500  __STACK_END                           
 1     00000b00  _AdcaResultRegs                       
